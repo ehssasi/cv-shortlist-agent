@@ -11,16 +11,19 @@ from .base import LLMProvider
 
 
 def _resolve(value: str) -> str:
-    """Replace ${VAR_NAME} with the environment variable value."""
+    """Replace ${VAR_NAME} or ${VAR_NAME:default} with the environment variable value."""
     if not isinstance(value, str):
         return value
     def replacer(match):
         var = match.group(1)
+        default = match.group(2)  # may be None
         val = os.environ.get(var, "")
         if not val:
+            if default is not None:
+                return default
             print(f"  [config] WARNING: env var ${var} is not set")
         return val
-    return re.sub(r'\$\{(\w+)\}', replacer, value)
+    return re.sub(r'\$\{(\w+)(?::([^}]*))?\}', replacer, value)
 
 
 def load_provider(config_path: str | None = None) -> tuple[LLMProvider, str]:
@@ -34,7 +37,7 @@ def load_provider(config_path: str | None = None) -> tuple[LLMProvider, str]:
     with open(config_path) as f:
         cfg = yaml.safe_load(f)
 
-    provider_name = cfg.get("provider", "azure_foundry")
+    provider_name = _resolve(cfg.get("provider", "azure_foundry"))
     provider_cfg = cfg.get(provider_name, {})
 
     # Resolve env var placeholders

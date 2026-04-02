@@ -97,7 +97,14 @@ st.caption("Upload a job description and candidate CVs — the AI agent scores, 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.header("⚙️ Settings")
-    top_n = st.slider("Top N candidates to shortlist", min_value=1, max_value=10, value=5)
+    demo_mode = st.toggle(
+        "⚡ Demo mode",
+        value=True,
+        help="Caps CVs at 10 for faster results. Turn off for full production runs.",
+    )
+    if demo_mode:
+        st.caption("Processing first 10 CVs only")
+    top_n = st.slider("Top N candidates to shortlist", min_value=1, max_value=10, value=3 if demo_mode else 5)
     use_linkedin = st.toggle(
         "LinkedIn validation",
         value=False,
@@ -109,7 +116,7 @@ with st.sidebar:
         height=120,
     )
     st.divider()
-    st.caption("Powered by Azure AI Foundry · Claude Sonnet 4.6")
+    st.caption("Powered by Claude (Azure) · Gemini")
 
 # ── Main inputs ───────────────────────────────────────────────────────────────
 col_jd, col_cvs = st.columns([1, 2])
@@ -159,8 +166,9 @@ if st.button("🚀 Run Shortlisting", type="primary", disabled=not ready, use_co
         jd_path = tmpdir_path / jd_file.name
         jd_path.write_bytes(jd_file.getvalue())
 
-        # Save uploaded CVs
-        for cv in cv_files:
+        # Save uploaded CVs (cap at 10 in demo mode)
+        files_to_process = cv_files[:10] if demo_mode else cv_files
+        for cv in files_to_process:
             (cv_folder / cv.name).write_bytes(cv.getvalue())
 
         # Parse job description text

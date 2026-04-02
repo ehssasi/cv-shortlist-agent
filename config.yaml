@@ -4,7 +4,7 @@
 # Local development: set PROVIDER=azure_foundry (uses az login)
 # ─────────────────────────────────────────────────────────────
 
-provider: gemini
+provider: ${PROVIDER:azure_foundry}
 
 # ── Google Gemini (default for Railway) ──────────────────────
 gemini:
