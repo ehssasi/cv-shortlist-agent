@@ -3,6 +3,8 @@ Google Gemini provider.
 Requires GEMINI_API_KEY or key set in config.
 """
 import json
+import time
+import re
 
 from google import genai
 from google.genai import types
@@ -63,11 +65,26 @@ class GeminiProvider(LLMProvider):
         )
 
         history = _to_gemini_messages(messages)
-        response = self._client.models.generate_content(
-            model=self.model,
-            contents=history,
-            config=config,
-        )
+
+        # Retry on 429 rate limit with the delay suggested by the API
+        for attempt in range(8):
+            try:
+                response = self._client.models.generate_content(
+                    model=self.model,
+                    contents=history,
+                    config=config,
+                )
+                break
+            except Exception as e:
+                msg = str(e)
+                if "429" in msg or "RESOURCE_EXHAUSTED" in msg:
+                    # Extract suggested retry delay if present, else use backoff
+                    delay_match = re.search(r'retryDelay.*?(\d+(?:\.\d+)?)s', msg)
+                    wait = float(delay_match.group(1)) + 1 if delay_match else min(15 * (2 ** attempt), 120)
+                    print(f"  [gemini] Rate limited — retrying in {wait:.0f}s (attempt {attempt + 1}/8)")
+                    time.sleep(wait)
+                else:
+                    raise
 
         candidate = response.candidates[0]
         text = None
