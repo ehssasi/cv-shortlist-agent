@@ -9,7 +9,7 @@ provider: gemini
 # ── Google Gemini (default for Railway) ──────────────────────
 gemini:
   api_key: ${GEMINI_API_KEY}
-  model: gemini-2.5-flash-preview-04-17
+  model: gemini-2.5-flash
 
 # ── Azure AI Foundry (local dev, Grundfos Azure) ─────────────
 azure_foundry:
