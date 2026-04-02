@@ -118,6 +118,12 @@ with st.sidebar:
     st.divider()
     st.caption("Powered by Claude (Azure) · Gemini")
 
+# ── Upload key counters (used to reset file uploaders) ────────────────────────
+if "cv_uploader_key" not in st.session_state:
+    st.session_state.cv_uploader_key = 0
+if "jd_uploader_key" not in st.session_state:
+    st.session_state.jd_uploader_key = 0
+
 # ── Main inputs ───────────────────────────────────────────────────────────────
 col_jd, col_cvs = st.columns([1, 2])
 
@@ -127,7 +133,11 @@ with col_jd:
         "Upload JD file",
         type=["docx", "pdf", "txt"],
         help="Accepts Word (.docx), PDF, or plain text",
+        key=f"jd_uploader_{st.session_state.jd_uploader_key}",
     )
+    if jd_file and st.button("✕ Clear JD", key="clear_jd"):
+        st.session_state.jd_uploader_key += 1
+        st.rerun()
 
 with col_cvs:
     st.subheader("Candidate CVs")
@@ -137,9 +147,14 @@ with col_cvs:
         accept_multiple_files=True,
         help="PDF, Word (.docx), or plain text. To select all files in a folder: open the folder in the dialog, then press Ctrl+A (Windows) or Cmd+A (Mac).",
         label_visibility="visible",
+        key=f"cv_uploader_{st.session_state.cv_uploader_key}",
     )
     if cv_files:
-        st.success(f"✅ {len(cv_files)} file(s) ready to process")
+        count_col, clear_col = st.columns([3, 1])
+        count_col.success(f"✅ {len(cv_files)} file(s) ready to process")
+        if clear_col.button("✕ Clear all", key="clear_cvs", use_container_width=True):
+            st.session_state.cv_uploader_key += 1
+            st.rerun()
         with st.expander(f"View uploaded files ({len(cv_files)})", expanded=False):
             for f in cv_files:
                 size_kb = round(f.size / 1024, 1)
