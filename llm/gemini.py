@@ -88,10 +88,14 @@ class GeminiProvider(LLMProvider):
 
     def add_tool_results(self, messages, response, results):
         messages.append({"role": "assistant", "_gemini_content": response._gemini_content})
+        def _to_dict(result_str):
+            parsed = json.loads(result_str) if isinstance(result_str, str) else result_str
+            return parsed if isinstance(parsed, dict) else {"result": parsed}
+
         messages.append({"role": "tool", "_gemini_results": [
             types.Part(function_response=types.FunctionResponse(
                 name=tc.name,
-                response=json.loads(result_str) if isinstance(result_str, str) else result_str,
+                response=_to_dict(result_str),
             ))
             for tc, result_str in results
         ]})
