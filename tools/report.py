@@ -47,7 +47,7 @@ def _build_markdown(data: dict) -> str:
         "",
         "## Executive Summary",
         "",
-        data.get("summary", ""),
+        data.get("summary") or "",
         "",
         "---",
         "",
@@ -74,7 +74,7 @@ def _build_markdown(data: dict) -> str:
         lines += [
             "",
             "**LinkedIn Validation:**",
-            c.get("linkedin_validation", "Not validated"),
+            c.get("linkedin_validation") or "Not validated",
             "",
             "---",
             "",
@@ -102,7 +102,7 @@ def _build_markdown(data: dict) -> str:
     lines += [
         "## Recommended Next Steps",
         "",
-        data.get("next_steps", ""),
+        data.get("next_steps") or "",
         "",
     ]
 
